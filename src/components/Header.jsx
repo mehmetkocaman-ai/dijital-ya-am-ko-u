@@ -1,0 +1,6 @@
+const Header = window.Header = ({ userName, updateUserName, streak, coins }) => (
+  <header className="relative z-10 flex flex-col gap-5 rounded-[2rem] border-4 border-white bg-white/85 p-6 shadow-[0_18px_0_#d7f5c9] backdrop-blur md:flex-row md:items-center md:justify-between">
+    <div><p className="mb-2 inline-flex rounded-full bg-lime-100 px-4 py-2 text-sm font-extrabold text-lime-700">Dijital Yaşam Koçu</p><h1 className="text-4xl font-black tracking-tight md:text-5xl">Merhaba {userName || 'Koçluk Yolcusu'}!</h1><p className="mt-3 max-w-2xl text-lg font-semibold text-slate-500">Bugün küçük alışkanlıkları tamamla, XP kazan ve dijital dengen için seviye atla.</p></div>
+    <div className="grid gap-3 sm:grid-cols-2 md:min-w-[360px]"><DailyStreakCard streak={streak} /><CoinCard coins={coins} /><label className="flex flex-col gap-2 text-sm font-black text-slate-500">Kullanıcı adın<input value={userName} onChange={(event) => updateUserName(event.target.value)} placeholder="Örn. Ayşe" className="rounded-2xl border-4 border-slate-100 bg-white px-5 py-4 text-lg font-extrabold text-slate-800 outline-none transition focus:border-lime-400 focus:ring-4 focus:ring-lime-100" /></label></div>
+  </header>
+);

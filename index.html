@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dijital Yaşam Koçu</title>
+    <link rel="stylesheet" href="/src/style.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script type="text/babel" data-presets="react" src="/src/constants/appConstants.jsx"></script>
+    <script type="text/babel" data-presets="react" src="/src/utils/appUtils.jsx"></script>
+    <script type="text/babel" data-presets="react" src="/src/services/storageService.jsx"></script>
+    <script type="text/babel" data-presets="react" src="/src/store/useCoachStore.jsx"></script>
+    <script type="text/babel" data-presets="react" src="/src/components/Cards.jsx"></script>
+    <script type="text/babel" data-presets="react" src="/src/components/Header.jsx"></script>
+    <script type="text/babel" data-presets="react" src="/src/sections/CategoryCardsSection.jsx"></script>
+    <script type="text/babel" data-presets="react" src="/src/sections/TasksSection.jsx"></script>
+    <script type="text/babel" data-presets="react" src="/src/sections/GoalsSection.jsx"></script>
+    <script type="text/babel" data-presets="react" src="/src/sections/FocusSection.jsx"></script>
+    <script type="text/babel" data-presets="react" src="/src/sections/StatsSection.jsx"></script>
+    <script type="text/babel" data-presets="react" src="/src/sections/BadgesSection.jsx"></script>
+    <script type="text/babel" data-presets="react" src="/src/sections/Sidebar.jsx"></script>
+    <script type="text/babel" data-presets="react" src="/src/App.jsx"></script>
+    <script type="text/babel" data-presets="react" src="/src/main.jsx"></script>
+  </body>
+</html>
