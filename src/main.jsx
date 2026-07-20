@@ -1,225 +1,83 @@
-const { useEffect, useMemo, useState } = React;
+const { useMemo, useState } = React;
 const { createRoot } = ReactDOM;
 
-const STORAGE_KEY = 'dijital-yasam-kocu-state';
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const palette = {
+  primary: '#0A5FA8',
+  secondary: '#1C7ED6',
+  gold: '#C89B3C',
+};
 
-const dailyTasks = [
-  { id: 1, title: 'Sabah 10 dakika esneme yap', category: 'Beden', xp: 25, icon: '🌞' },
-  { id: 2, title: 'Bildirimleri 1 saat sessize al', category: 'Odak', xp: 35, icon: '🎧' },
-  { id: 3, title: '15 dakika kitap oku', category: 'Zihin', xp: 30, icon: '📚' },
-  { id: 4, title: 'Bir bardak su iç ve nefes molası ver', category: 'Enerji', xp: 20, icon: '💧' },
-  { id: 5, title: 'Günün dijital ekran süresini not et', category: 'Farkındalık', xp: 40, icon: '📱' },
+const categories = [
+  { id: 'places', title: "Kütahya'da Gezilecek Yerler", icon: '🏛️', text: 'Müzelerden Frig Vadisi rotalarına kadar seçilmiş deneyimler.', href: '#gezilecek-yerler' },
+  { id: 'food', title: "Kütahya'da Ne Yenir", icon: '🍲', text: 'Yöresel lezzetler, restoranlar, kahveler ve tatlı durakları.', href: '#ne-yenir' },
+  { id: 'districts', title: 'Kütahya İlçeleri', icon: '🧭', text: 'Merkez hariç 12 ilçeyi tarih, kültür ve rota bilgileriyle inceleyin.', href: '#ilceler' },
+  { id: 'events', title: 'Kütahya Etkinlikleri', icon: '🎭', text: 'Festival, sergi, tiyatro ve spor etkinliklerini takvimden takip edin.', href: '#etkinlikler' },
 ];
 
-const todayKey = () => new Date().toLocaleDateString('en-CA');
+const placeCategories = ['Müzeler', 'Tarihi Yerler', 'Doğal Güzellikler', 'Camiler', 'Kervansaraylar', 'Şehir Meydanları', 'Mesire Alanları', 'Seyir Noktaları'];
+const foodCategories = ['Yöresel Yemekler', 'Restoranlar', 'Kafeler', 'Tatlıcılar', 'Kahvaltı Mekanları', 'Fast Food'];
+const eventTypes = ['Konser', 'Festival', 'Tiyatro', 'Sinema', 'Sergi', 'Fuar', 'Çocuk Etkinliği', 'Konferans', 'Organizasyon', 'Spor'];
 
-const dayDifference = (fromDate, toDate) => {
-  if (!fromDate || !toDate) return 0;
+const places = [
+  {
+    title: 'Aizanoi Antik Kenti', category: 'Tarihi Yerler', district: 'Çavdarhisar', rating: 4.9, price: 'Müzekart', status: 'Açık',
+    image: 'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=1200&q=80',
+    description: 'Zeus Tapınağı, antik tiyatro ve stadyum aksıyla Kütahya’nın dünya ölçeğinde kültür mirası.',
+    address: 'Çavdarhisar, Kütahya', phone: '+90 274 351 20 03', hours: '08:30 - 19:00', lat: 39.1933, lng: 29.6139,
+  },
+  {
+    title: 'Frig Vadisi', category: 'Doğal Güzellikler', district: 'Merkez', rating: 4.8, price: 'Ücretsiz', status: 'Açık',
+    image: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80',
+    description: 'Peri bacaları, kaya anıtları ve yürüyüş yollarıyla doğa ve tarih odaklı keşif rotası.',
+    address: 'Yeni Bosna Köyü çevresi', phone: '+90 274 223 60 10', hours: '24 saat', lat: 39.2691, lng: 30.1444,
+  },
+  {
+    title: 'Kütahya Çinili Camii', category: 'Camiler', district: 'Merkez', rating: 4.7, price: 'Ücretsiz', status: 'Açık',
+    image: 'https://images.unsplash.com/photo-1601191362988-ac1ebec629c8?auto=format&fit=crop&w=1200&q=80',
+    description: 'Mavi-beyaz çini estetiğini çağdaş mimariyle buluşturan ikonik durak.',
+    address: 'Maltepe Mahallesi, Kütahya', phone: '+90 274 223 60 10', hours: 'Namaz vakitleri', lat: 39.4192, lng: 29.9833,
+  },
+];
 
-  const from = new Date(`${fromDate}T00:00:00`);
-  const to = new Date(`${toDate}T00:00:00`);
+const foods = [
+  { title: 'Cimcik', category: 'Yöresel Yemekler', district: 'Merkez', range: '₺₺', rating: 4.8, description: 'Sarımsaklı yoğurt ve tereyağıyla servis edilen Kütahya klasiği.', instagram: '@burasikutahya', website: 'burasikutahya.com', lat: 39.419, lng: 29.985 },
+  { title: 'Ilıbada Dolması', category: 'Yöresel Yemekler', district: 'Tavşanlı', range: '₺₺', rating: 4.7, description: 'Ekşi-ot aromasıyla yöre sofralarının özel dolma tarifi.', instagram: '@kutahyalezzet', website: 'burasikutahya.com', lat: 39.543, lng: 29.497 },
+  { title: 'Gediz Tarhanası', category: 'Kahvaltı Mekanları', district: 'Gediz', range: '₺', rating: 4.6, description: 'Kışlık gelenekten gelen, besleyici ve güçlü aromalı yöresel çorba.', instagram: '@gedizsofrasi', website: 'burasikutahya.com', lat: 38.993, lng: 29.39 },
+];
 
-  return Math.round((to - from) / MS_PER_DAY);
-};
+const districts = ['Altıntaş', 'Aslanapa', 'Çavdarhisar', 'Domaniç', 'Dumlupınar', 'Emet', 'Gediz', 'Hisarcık', 'Pazarlar', 'Simav', 'Şaphane', 'Tavşanlı'];
+const events = [
+  { title: 'Çini ve El Sanatları Festivali', type: 'Festival', date: '2026-08-14', time: '19:30', place: 'Kütahya Kent Meydanı', paid: false, organizer: 'Burası Kütahya Kültür Ekibi' },
+  { title: 'Aizanoi Yaz Konserleri', type: 'Konser', date: '2026-08-22', time: '21:00', place: 'Çavdarhisar Antik Tiyatro', paid: true, organizer: 'Kültür Rotası' },
+  { title: 'Frig Vadisi Fotoğraf Yürüyüşü', type: 'Spor', date: '2026-09-06', time: '08:00', place: 'Frig Vadisi Başlangıç Noktası', paid: false, organizer: 'Doğa Kulübü' },
+];
 
-const normalizeStoredState = () => {
-  const emptyState = {
-    userName: '',
-    completedTasks: [],
-    completedDate: todayKey(),
-    streak: 0,
-    bestStreak: 0,
-    lastCompletionDate: '',
-  };
+const adminModules = ['Dashboard', 'Gezilecek Yerler', 'Ne Yenir', 'İlçeler', 'Etkinlikler', 'Medya', 'Kategoriler', 'Kullanıcılar', 'Ayarlar'];
+const crudFields = ['Başlık', 'Kapak Fotoğrafı', 'Galeri', 'Açıklama', 'Adres', 'Telefon', 'Google Maps Konumu', 'Youtube Videosu', 'Meta Title', 'Meta Description', 'Keywords', 'Slug'];
 
-  const savedState = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+const routeUrl = (lat, lng) => `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 
-  if (!savedState) return emptyState;
-
-  const today = todayKey();
-  const missedDays = dayDifference(savedState.lastCompletionDate, today);
-  const isNewDay = savedState.completedDate !== today;
-
-  return {
-    ...emptyState,
-    ...savedState,
-    completedTasks: isNewDay ? [] : savedState.completedTasks || [],
-    completedDate: today,
-    streak: missedDays > 1 ? 0 : savedState.streak || 0,
-    bestStreak: savedState.bestStreak || 0,
-  };
-};
+function SectionTitle({ eyebrow, title, text }) {
+  return <div className="section-title"><span>{eyebrow}</span><h2>{title}</h2><p>{text}</p></div>;
+}
 
 function App() {
-  const [coachState, setCoachState] = useState(normalizeStoredState);
-  const { userName, completedTasks, streak, bestStreak, lastCompletionDate } = coachState;
-  const today = todayKey();
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState('Tümü');
+  const [eventView, setEventView] = useState('Kart');
+  const searchable = useMemo(() => [...places, ...foods, ...events].filter((item) => `${item.title} ${item.category || item.type} ${item.district || item.place}`.toLocaleLowerCase('tr').includes(query.toLocaleLowerCase('tr'))), [query]);
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(coachState));
-  }, [coachState]);
-
-  const totalXp = useMemo(
-    () => dailyTasks.filter((task) => completedTasks.includes(task.id)).reduce((sum, task) => sum + task.xp, 0),
-    [completedTasks]
-  );
-
-  const level = Math.floor(totalXp / 100) + 1;
-  const xpInLevel = totalXp % 100;
-  const progress = Math.min(xpInLevel, 100);
-  const completedCount = completedTasks.length;
-  const streakProgress = Math.min((streak / 7) * 100, 100);
-
-  const updateUserName = (value) => {
-    setCoachState((current) => ({ ...current, userName: value }));
-  };
-
-  const toggleTask = (taskId) => {
-    setCoachState((current) => {
-      const taskAlreadyCompleted = current.completedTasks.includes(taskId);
-      const nextCompletedTasks = taskAlreadyCompleted
-        ? current.completedTasks.filter((id) => id !== taskId)
-        : [...current.completedTasks, taskId];
-      const isFirstCompletionToday = !taskAlreadyCompleted && current.lastCompletionDate !== today;
-      const continuedStreak = dayDifference(current.lastCompletionDate, today) === 1;
-      const nextStreak = isFirstCompletionToday ? (continuedStreak ? current.streak + 1 : 1) : current.streak;
-
-      return {
-        ...current,
-        completedTasks: nextCompletedTasks,
-        completedDate: today,
-        lastCompletionDate: isFirstCompletionToday ? today : current.lastCompletionDate,
-        streak: nextStreak,
-        bestStreak: Math.max(current.bestStreak, nextStreak),
-      };
-    });
-  };
-
-  return (
-    <main className="min-h-screen overflow-hidden bg-[#f5fff2] text-slate-900">
-      <section className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-8 px-5 py-8 md:px-10">
-        <div className="absolute left-[-80px] top-[-120px] h-72 w-72 rounded-full bg-lime-300/40 blur-3xl" />
-        <div className="absolute bottom-[-100px] right-[-80px] h-80 w-80 rounded-full bg-sky-300/40 blur-3xl" />
-
-        <header className="relative z-10 flex flex-col gap-5 rounded-[2rem] border-4 border-white bg-white/85 p-6 shadow-[0_18px_0_#d7f5c9] backdrop-blur md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="mb-2 inline-flex rounded-full bg-lime-100 px-4 py-2 text-sm font-extrabold text-lime-700">
-              Dijital Yaşam Koçu
-            </p>
-            <h1 className="text-4xl font-black tracking-tight md:text-5xl">
-              Merhaba {userName || 'Koçluk Yolcusu'}!
-            </h1>
-            <p className="mt-3 max-w-2xl text-lg font-semibold text-slate-500">
-              Bugün küçük alışkanlıkları tamamla, XP kazan ve dijital dengen için seviye atla.
-            </p>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2 md:min-w-[360px]">
-            <div className="rounded-[1.5rem] bg-orange-100 px-5 py-4 shadow-[0_8px_0_#fdba74]">
-              <p className="text-sm font-black text-orange-600">🔥 Günlük seri</p>
-              <p className="text-3xl font-black text-orange-700">{streak} gün</p>
-            </div>
-            <label className="flex flex-col gap-2 text-sm font-black text-slate-500">
-              Kullanıcı adın
-              <input
-                value={userName}
-                onChange={(event) => updateUserName(event.target.value)}
-                placeholder="Örn. Ayşe"
-                className="rounded-2xl border-4 border-slate-100 bg-white px-5 py-4 text-lg font-extrabold text-slate-800 outline-none transition focus:border-lime-400 focus:ring-4 focus:ring-lime-100"
-              />
-            </label>
-          </div>
-        </header>
-
-        <div className="relative z-10 grid gap-6 lg:grid-cols-[1fr_360px]">
-          <section className="rounded-[2rem] border-4 border-white bg-white p-5 shadow-[0_14px_0_#dcefd4] md:p-7">
-            <div className="mb-6 flex items-center justify-between gap-4">
-              <div>
-                <h2 className="text-3xl font-black">Günlük görevler</h2>
-                <p className="font-bold text-slate-400">{completedCount}/{dailyTasks.length} görev tamamlandı</p>
-              </div>
-              <span className="rounded-2xl bg-yellow-100 px-4 py-3 text-xl font-black text-yellow-600">⚡ {totalXp} XP</span>
-            </div>
-
-            <div className="space-y-4">
-              {dailyTasks.map((task) => {
-                const isDone = completedTasks.includes(task.id);
-                return (
-                  <article
-                    key={task.id}
-                    className={`flex items-center gap-4 rounded-[1.5rem] border-4 p-4 transition ${
-                      isDone
-                        ? 'border-lime-300 bg-lime-50 shadow-[0_8px_0_#bef264]'
-                        : 'border-slate-100 bg-white shadow-[0_8px_0_#e5e7eb] hover:-translate-y-1 hover:border-lime-200'
-                    }`}
-                  >
-                    <div className="grid h-14 w-14 place-items-center rounded-2xl bg-slate-100 text-3xl">{task.icon}</div>
-                    <div className="min-w-0 flex-1">
-                      <p className={`text-lg font-black ${isDone ? 'text-lime-700 line-through decoration-4' : 'text-slate-800'}`}>
-                        {task.title}
-                      </p>
-                      <p className="text-sm font-extrabold text-slate-400">{task.category} • +{task.xp} XP</p>
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={isDone}
-                      onChange={() => toggleTask(task.id)}
-                      aria-label={`${task.title} görevini tamamla`}
-                      className="h-8 w-8 cursor-pointer accent-lime-500"
-                    />
-                  </article>
-                );
-              })}
-            </div>
-          </section>
-
-          <aside className="space-y-6">
-            <section className="rounded-[2rem] border-4 border-white bg-slate-900 p-6 text-white shadow-[0_14px_0_#b7d8ad]">
-              <p className="text-sm font-black uppercase tracking-[0.2em] text-lime-300">Seviye</p>
-              <div className="mt-3 flex items-end justify-between">
-                <span className="text-7xl font-black">{level}</span>
-                <span className="rounded-full bg-lime-400 px-4 py-2 text-sm font-black text-slate-900">{100 - xpInLevel} XP kaldı</span>
-              </div>
-              <div className="mt-6 h-5 overflow-hidden rounded-full bg-slate-700">
-                <div className="h-full rounded-full bg-gradient-to-r from-lime-300 to-emerald-400 transition-all" style={{ width: `${progress}%` }} />
-              </div>
-              <p className="mt-3 text-sm font-bold text-slate-300">Sonraki seviyeye ilerleme: %{progress}</p>
-            </section>
-
-            <section className="rounded-[2rem] border-4 border-white bg-gradient-to-br from-orange-50 to-yellow-100 p-6 shadow-[0_14px_0_#fed7aa]">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-black uppercase tracking-[0.2em] text-orange-500">Seri takibi</p>
-                  <h2 className="mt-2 text-3xl font-black text-orange-700">🔥 {streak} gün</h2>
-                </div>
-                <div className="rounded-3xl bg-white px-4 py-3 text-center shadow-[0_6px_0_#fdba74]">
-                  <p className="text-xs font-black text-slate-400">En iyi</p>
-                  <p className="text-2xl font-black text-slate-800">{bestStreak}</p>
-                </div>
-              </div>
-              <div className="mt-5 h-4 overflow-hidden rounded-full bg-white/80">
-                <div className="h-full rounded-full bg-gradient-to-r from-orange-400 to-red-400 transition-all" style={{ width: `${streakProgress}%` }} />
-              </div>
-              <p className="mt-3 text-sm font-extrabold text-orange-700">
-                {lastCompletionDate === today
-                  ? 'Harika! Bugünkü seri hedefin tamamlandı.'
-                  : 'Bugün en az bir görevi tamamla, serin büyüsün.'}
-              </p>
-            </section>
-
-            <section className="rounded-[2rem] border-4 border-white bg-white p-6 shadow-[0_14px_0_#dcefd4]">
-              <h2 className="text-2xl font-black">Koç notu</h2>
-              <p className="mt-3 text-base font-semibold leading-7 text-slate-500">
-                Duolingo tarzı seri hissi için her gün en az 1 görevi tamamla. Bir günü boş geçirirsen seri sıfırlanır, en iyi serin ise saklanır.
-              </p>
-              <div className="mt-5 rounded-3xl bg-lime-100 p-5 text-center text-5xl">🦉</div>
-            </section>
-          </aside>
-        </div>
-      </section>
-    </main>
-  );
+  return <main>
+    <nav className="topbar"><a className="brand" href="#hero"><span>◆</span> BURASI KÜTAHYA</a><label className="search">⌕<input value={query} onChange={(e)=>setQuery(e.target.value)} placeholder="Gezilecek yer, yemek, ilçe veya etkinlik ara" /></label><a href="#admin">Admin</a></nav>
+    <section id="hero" className="hero"><div className="tile-bg" /><div className="hero-content"><div className="logo-mark">BK</div><h1>BURASI KÜTAHYA</h1><p>“Kütahya'yı Keşfet”</p><div className="hero-cards">{categories.map((c)=><a className="hero-card" href={c.href} key={c.id}><b>{c.icon}</b><h3>{c.title}</h3><small>{c.text}</small></a>)}</div></div></section>
+    {query && <section className="panel search-results"><SectionTitle eyebrow="Genel arama" title="Anında sonuçlar" text="Tüm içerikler tek arama deneyiminde listelenir."/><div className="grid cards">{searchable.map((i)=><article className="mini-card" key={i.title}><b>{i.title}</b><span>{i.category || i.type || i.place}</span></article>)}</div></section>}
+    <section id="gezilecek-yerler" className="panel"><SectionTitle eyebrow="Keşif" title="Kütahya'da Gezilecek Yerler" text="Yönetim panelinden yönetilecek kategori, galeri, SEO ve rota bilgileriyle zengin içerikler."/><div className="chips">{['Tümü',...placeCategories].map(x=><button onClick={()=>setFilter(x)} className={filter===x?'active':''}>{x}</button>)}</div><div className="grid cards">{places.filter(p=>filter==='Tümü'||p.category===filter).map((p)=><article className="content-card"><img src={p.image}/><div><span>{p.category} • {p.district} • ⭐ {p.rating}</span><h3>{p.title}</h3><p>{p.description}</p><ul><li>Adres: {p.address}</li><li>Telefon: {p.phone}</li><li>Çalışma Saatleri: {p.hours}</li><li>Giriş Ücreti: {p.price}</li></ul><a className="route" target="_blank" href={routeUrl(p.lat,p.lng)}>ROTA OLUŞTUR</a></div></article>)}</div></section>
+    <section id="ne-yenir" className="panel blue"><SectionTitle eyebrow="Lezzet" title="Kütahya'da Ne Yenir" text="Menü, fiyat aralığı, sosyal medya, değerlendirme ve konum bilgisi hazır."/><div className="chips light">{foodCategories.map(x=><button>{x}</button>)}</div><div className="grid food-grid">{foods.map(f=><article className="glass"><span>{f.category} • {f.district} • ⭐ {f.rating}</span><h3>{f.title}</h3><p>{f.description}</p><b>{f.range} · Menü · Web: {f.website} · Instagram: {f.instagram}</b><a className="route gold" target="_blank" href={routeUrl(f.lat,f.lng)}>ROTA OLUŞTUR</a></article>)}</div></section>
+    <section id="ilceler" className="panel"><SectionTitle eyebrow="12 ilçe" title="Kütahya İlçeleri" text="Her ilçe için tanıtım, tarihçe, nüfus, gezilecek yerler, yemek, etkinlik, galeri, harita, konaklama, restoran ve iletişim alanları."/><div className="district-list">{districts.map((d,idx)=><article><div><b>{String(idx+1).padStart(2,'0')}</b><h3>{d}</h3><p>Germiyan kültürü, yerel üretim, doğa rotaları ve ilçe rehberi modülü.</p></div><a className="route" href={routeUrl(39.4 + idx/100,29.9 + idx/100)} target="_blank">ROTA OLUŞTUR</a></article>)}</div></section>
+    <section id="etkinlikler" className="panel"><SectionTitle eyebrow="Takvim" title="Kütahya Etkinlikleri" text="Aylık görünüm, liste görünümü ve kart görünümü destekli etkinlik altyapısı."/><div className="view-tabs">{['Aylık','Liste','Kart'].map(v=><button className={eventView===v?'active':''} onClick={()=>setEventView(v)}>{v} görünüm</button>)}</div><div className={`events ${eventView.toLowerCase()}`}>{events.map(e=><article><span>{e.type} • {e.paid?'Ücretli':'Ücretsiz'}</span><h3>{e.title}</h3><p>{e.date} · {e.time} · {e.place}</p><small>Organizatör: {e.organizer} · Bilet linki ve harita alanı</small><a className="route" target="_blank" href={routeUrl(39.42,29.98)}>ROTA OLUŞTUR</a></article>)}</div><div className="chips">{eventTypes.map(t=><button>{t}</button>)}</div></section>
+    <section className="panel map-panel"><SectionTitle eyebrow="Harita" title="Marker, cluster, rota ve konum" text="Google Maps veya OpenStreetMap entegrasyonuna hazır API katmanı."/><div className="map"><span>Aizanoi</span><span>Frig Vadisi</span><span>Çinili Camii</span><div className="route-line" /></div></section>
+    <section id="admin" className="admin"><aside>{adminModules.map(m=><a>{m}</a>)}</aside><div><SectionTitle eyebrow="Yönetim Paneli" title="Responsive Admin Console" text="RBAC, JWT/NextAuth, Prisma/PostgreSQL, medya ve SEO yönetimine uygun ölçeklenebilir mimari."/><div className="admin-grid"><article><h3>CRUD Modülleri</h3><p>Gezilecek yerler, lezzetler, ilçeler ve etkinlikler için oluşturma, düzenleme, silme ve yayınlama iş akışları.</p></article><article><h3>Medya Yönetimi</h3><p>WebP, otomatik yeniden boyutlandırma, sürükle bırak ve çoklu yükleme ekranları.</p></article><article><h3>SEO & PWA</h3><p>Schema.org, Open Graph, Twitter Cards, XML sitemap, robots.txt, breadcrumb, canonical URL ve offline kabiliyet.</p></article></div><div className="form-mock">{crudFields.map(f=><label>{f}<input placeholder={`${f} girin`} /></label>)}</div></div></section>
+  </main>;
 }
 
 createRoot(document.getElementById('root')).render(<App />);

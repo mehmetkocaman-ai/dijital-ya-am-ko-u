@@ -1,0 +1,13 @@
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "postgresql" url = env("DATABASE_URL") }
+
+enum Role { ADMIN EDITOR USER }
+enum PublishStatus { DRAFT PUBLISHED ARCHIVED }
+
+model User { id String @id @default(cuid()) email String @unique name String? role Role @default(USER) createdAt DateTime @default(now()) }
+model Category { id String @id @default(cuid()) name String slug String @unique type String createdAt DateTime @default(now()) }
+model Place { id String @id @default(cuid()) title String slug String @unique description String address String? phone String? hours String? price String? lat Float? lng Float? rating Float @default(0) status PublishStatus @default(DRAFT) metaTitle String? metaDescription String? keywords String[] gallery String[] youtubeUrl String? createdAt DateTime @default(now()) }
+model FoodVenue { id String @id @default(cuid()) title String slug String @unique description String? menu String? address String? phone String? priceRange String? website String? instagram String? lat Float? lng Float? rating Float @default(0) gallery String[] createdAt DateTime @default(now()) }
+model District { id String @id @default(cuid()) name String @unique slug String @unique intro String? history String? population Int? gallery String[] lat Float? lng Float? createdAt DateTime @default(now()) }
+model Event { id String @id @default(cuid()) title String slug String @unique type String startsAt DateTime venue String? ticketUrl String? description String? organizer String? lat Float? lng Float? coverImage String? createdAt DateTime @default(now()) }
+model Media { id String @id @default(cuid()) url String alt String? mimeType String width Int? height Int? size Int? createdAt DateTime @default(now()) }
